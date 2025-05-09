@@ -28,6 +28,8 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var tvBrand: TextView
     private lateinit var tvType: TextView
     private lateinit var tvCode: TextView
+    private lateinit var tvAmount: TextView
+    private lateinit var tvSize: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +39,8 @@ class DetailActivity : AppCompatActivity() {
         tvBrand = findViewById(R.id.tvBrand)
         tvType = findViewById(R.id.tvType)
         tvCode = findViewById(R.id.tvCode)
+        tvAmount = findViewById(R.id.tvAmount)
+        tvSize = findViewById(R.id.tvSize)
 
         val url = intent.getStringExtra("scanned_url")
         if (url != null) {
@@ -64,9 +68,19 @@ class DetailActivity : AppCompatActivity() {
                         tvBrand.text = "Marca: ${it.brand}"
                         tvType.text = "Tipo: ${it.type}"
                         tvCode.text = "Código: ${it.codToday}"
+                        tvAmount.text = "Cantidad: ${it.amount}"
+                        val tallasDisponibles = it.sizes?.filter {entry -> entry.value > 0 }
+                        tvSize.text = if (tallasDisponibles.isNullOrEmpty()){
+                            "No hay tallas disponibles"
+                        }else{
+                            "Tallas Disponibles:\n" + tallasDisponibles.entries.joinToString("\n"){
+                                entry -> "${entry.key}: ${entry.value}"
+                            }
+                        }
 
+                        val imageUrl = it.urlImg?.replace("http://localhost:8080", "https://44cf-2001-1388-5547-fb1b-e586-fd99-6171-13fa.ngrok-free.app")
                         Glide.with(this@DetailActivity)
-                            .load(it.urlImg)
+                            .load(imageUrl)
                             .into(imageView)
                     }
                 }

@@ -10,6 +10,7 @@ data class SlipperDetail(
     @Json(name = "brand") val brand: String?,
     @Json(name = "codToday") val codToday: String?,
     @Json(name = "company") val company: String?,
+    @Json(name = "amount") val amount: Int?,
     @Json(name = "registrationDate") val registrationDate: String?,
     @Json(name = "urlImg") val urlImg: String?,
     @Json(name = "type") val type: String?,
