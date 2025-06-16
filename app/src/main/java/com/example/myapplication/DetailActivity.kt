@@ -53,12 +53,12 @@ class DetailActivity : AppCompatActivity() {
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://44cf-2001-1388-5547-fb1b-e586-fd99-6171-13fa.ngrok-free.app/") // solo base
+            .baseUrl("https://bluejay-fitting-bluebird.ngrok-free.app/") // solo base
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
 
         val service = retrofit.create(SlipperService::class.java)
-        val fullPath = url.substringAfter("https://44cf-2001-1388-5547-fb1b-e586-fd99-6171-13fa.ngrok-free.app/")
+        val fullPath = url.substringAfter("https://bluejay-fitting-bluebird.ngrok-free.app/")
 
         service.getSlipperDetails(fullPath).enqueue(object : Callback<SlipperDetail> {
             override fun onResponse(call: Call<SlipperDetail>, response: Response<SlipperDetail>) {
@@ -78,7 +78,7 @@ class DetailActivity : AppCompatActivity() {
                             }
                         }
 
-                        val imageUrl = it.urlImg?.replace("http://localhost:8080", "https://44cf-2001-1388-5547-fb1b-e586-fd99-6171-13fa.ngrok-free.app")
+                        val imageUrl = it.urlImg?.replace("http://localhost:80", "https://bluejay-fitting-bluebird.ngrok-free.app")
                         Glide.with(this@DetailActivity)
                             .load(imageUrl)
                             .into(imageView)
