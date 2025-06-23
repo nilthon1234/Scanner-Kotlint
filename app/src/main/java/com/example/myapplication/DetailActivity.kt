@@ -29,6 +29,7 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var tvType: TextView
     private lateinit var tvCode: TextView
     private lateinit var tvAmount: TextView
+    private lateinit var tvGenero: TextView
     private lateinit var tvSize: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +41,7 @@ class DetailActivity : AppCompatActivity() {
         tvType = findViewById(R.id.tvType)
         tvCode = findViewById(R.id.tvCode)
         tvAmount = findViewById(R.id.tvAmount)
+        tvGenero = findViewById(R.id.tvGenero)
         tvSize = findViewById(R.id.tvSize)
 
         val url = intent.getStringExtra("scanned_url")
@@ -53,12 +55,12 @@ class DetailActivity : AppCompatActivity() {
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://99e0-181-224-239-230.ngrok-free.app/") // solo base
+            .baseUrl("https://bluejay-fitting-bluebird.ngrok-free.app/") // solo base
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
 
         val service = retrofit.create(SlipperService::class.java)
-        val fullPath = url.substringAfter("https://99e0-181-224-239-230.ngrok-free.app/")
+        val fullPath = url.substringAfter("https://bluejay-fitting-bluebird.ngrok-free.app/")
 
         service.getSlipperDetails(fullPath).enqueue(object : Callback<SlipperDetail> {
             override fun onResponse(call: Call<SlipperDetail>, response: Response<SlipperDetail>) {
@@ -69,6 +71,7 @@ class DetailActivity : AppCompatActivity() {
                         tvType.text = "Tipo: ${it.type}"
                         tvCode.text = "Código: ${it.codToday}"
                         tvAmount.text = "Cantidad: ${it.amount}"
+                        tvGenero.text = "Genero: ${it.genero}"
                         val tallasDisponibles = it.sizes?.filter {entry -> entry.value > 0 }
                         tvSize.text = if (tallasDisponibles.isNullOrEmpty()){
                             "No hay tallas disponibles"
@@ -78,7 +81,7 @@ class DetailActivity : AppCompatActivity() {
                             }
                         }
 
-                        val imageUrl = it.urlImg?.replace("http://localhost:8080", "https://99e0-181-224-239-230.ngrok-free.app")
+                        val imageUrl = it.urlImg?.replace("http://localhost:80", "https://bluejay-fitting-bluebird.ngrok-free.app")
                         Glide.with(this@DetailActivity)
                             .load(imageUrl)
                             .into(imageView)
