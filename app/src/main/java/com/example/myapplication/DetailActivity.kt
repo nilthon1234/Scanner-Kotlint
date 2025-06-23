@@ -29,6 +29,7 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var tvType: TextView
     private lateinit var tvCode: TextView
     private lateinit var tvAmount: TextView
+    private lateinit var tvGenero: TextView
     private lateinit var tvSize: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +41,7 @@ class DetailActivity : AppCompatActivity() {
         tvType = findViewById(R.id.tvType)
         tvCode = findViewById(R.id.tvCode)
         tvAmount = findViewById(R.id.tvAmount)
+        tvGenero = findViewById(R.id.tvGenero)
         tvSize = findViewById(R.id.tvSize)
 
         val url = intent.getStringExtra("scanned_url")
@@ -69,6 +71,7 @@ class DetailActivity : AppCompatActivity() {
                         tvType.text = "Tipo: ${it.type}"
                         tvCode.text = "Código: ${it.codToday}"
                         tvAmount.text = "Cantidad: ${it.amount}"
+                        tvGenero.text = "Genero: ${it.genero}"
                         val tallasDisponibles = it.sizes?.filter {entry -> entry.value > 0 }
                         tvSize.text = if (tallasDisponibles.isNullOrEmpty()){
                             "No hay tallas disponibles"
