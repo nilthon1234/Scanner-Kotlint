@@ -15,5 +15,9 @@ data class SlipperDetail(
     @Json(name = "urlImg") val urlImg: String?,
     @Json(name = "type") val type: String?,
     @Json(name = "genero") val genero: String?,
-    @Json(name = "sizes") val sizes: Map<String, Int>?
+    @Json(name = "price") val price: Double?,
+    @Json(name = "repositoryType") val repositoryType: String?,
+    @Json(name = "sizes") val sizes: Map<String, Int>?,
+    //servira para el registro descanner intercepra
+    var maquina: String? = "MAQ02"
 )

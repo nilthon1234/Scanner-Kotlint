@@ -1,99 +1,173 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
     tools:context=".DetailActivity">
 
-    <!-- Tarjeta con información principal -->
-    <com.google.android.material.card.MaterialCardView
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        app:cardElevation="6dp"
-        app:cardCornerRadius="12dp"
-        android:backgroundTint="?android:attr/colorBackground"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:padding="16dp">
 
-        <LinearLayout
+        <!-- ALMACÉN -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginBottom="16dp"
+            app:cardElevation="6dp"
+            app:cardCornerRadius="12dp">
 
-            <!-- Imagen del producto -->
-            <ImageView
-                android:id="@+id/imageView"
+            <LinearLayout
+                android:orientation="vertical"
+                android:padding="16dp"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:scaleType="centerCrop"/>
+                android:layout_height="wrap_content">
 
-            <!-- Marca y Tipo -->
-            <TextView
-                android:id="@+id/tvBrand"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Marca: Adidas"
-                android:textStyle="bold"
-                android:textSize="18sp"
-                android:paddingTop="8dp"
-                android:textColor="?android:attr/textColorPrimary" />
+                <TextView android:text="📦 ALMACÉN" android:textStyle="bold" android:textSize="18sp" 
+                    android:layout_height="wrap_content" 
+                    android:layout_width="wrap_content"/>
 
-            <TextView
-                android:id="@+id/tvType"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tipo: Zapatilla"
-                android:textSize="16sp"
-                android:textColor="?android:attr/textColorSecondary" />
+                <ImageView android:id="@+id/imageView"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:scaleType="centerCrop"/>
 
-            <!-- Código y Empresa -->
-            <TextView
-                android:id="@+id/tvCode"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Código: C408"
-                android:textSize="16sp"
-                android:textColor="?android:attr/textColorSecondary" />
+                <TextView android:id="@+id/tvBrand" 
+                    android:layout_height="wrap_content" 
+                    android:layout_width="wrap_content"/>
+                <TextView android:id="@+id/tvType" 
+                    android:layout_height="wrap_content" 
+                    android:layout_width="wrap_content"/>
+                <TextView android:id="@+id/tvCode" 
+                    android:layout_height="wrap_content" 
+                    android:layout_width="wrap_content"/>
+                <TextView android:id="@+id/tvCompany" 
+                    android:layout_height="wrap_content" 
+                    android:layout_width="wrap_content"/>
+                <TextView android:id="@+id/tvAmount"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"/>
+                <TextView android:id="@+id/tvGenero"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"/>
 
-            <TextView
-                android:id="@+id/tvCompany"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Empresa: AQ0053"
-                android:textSize="16sp"
-                android:textColor="?android:attr/textColorSecondary" />
 
-            <!-- Cantidad disponible -->
-            <TextView
-                android:id="@+id/tvAmount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cantidad disponible: 0"
-                android:textSize="16sp"
-                android:textColor="?android:attr/textColorSecondary" />
+                <GridLayout
+                    android:id="@+id/gridSizes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="3"
+                    android:layout_marginTop="12dp"
+                    android:alignmentMode="alignMargins"
+                    android:padding="4dp"
+                    android:useDefaultMargins="true" />
 
-            <!-- Género -->
-            <TextView
-                android:id="@+id/tvGenero"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Género: Niño"
-                android:textSize="16sp"
-                android:textColor="?android:attr/textColorSecondary" />
-            <TextView
-                android:id="@+id/tvSize"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Size"
-                android:textSize="16sp"
-                android:textColor="?android:attr/textColorSecondary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Sección VITRINA -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardElevation="6dp"
+            app:cardCornerRadius="12dp">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🪟 VITRINA"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+
+                <TextView
+                    android:id="@+id/tvVitrinaAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:id="@+id/tvVitrinaPrecio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:id="@+id/tvVitrinaTipo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <Button
+                    android:id="@+id/btnVitrinaSize"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Talla"
+                    android:textSize="16sp"
+                    android:layout_marginTop="8dp"
+                    android:backgroundTint="@color/teal_200"
+                    android:textColor="@android:color/white"
+                    android:drawableLeft="@drawable/ic_check_circle"
+                    android:drawablePadding="8dp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <!-- VITRINA B -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardElevation="6dp"
+            app:cardCornerRadius="12dp">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🪟 VITRINAB"
+                    android:textStyle="bold"
+                    android:textSize="18sp"/>
+
+                <TextView
+                    android:id="@+id/tvVitrinaBAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:id="@+id/tvVitrinaBPrecio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:id="@+id/tvVitrinaBTipo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <Button
+                    android:id="@+id/btnVitrinaBSize"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Talla"
+                    android:textSize="16sp"
+                    android:layout_marginTop="8dp"
+                    android:backgroundTint="@color/purple_200"
+                    android:textColor="@android:color/white"
+                    android:drawableLeft="@drawable/ic_check_circle"
+                    android:drawablePadding="8dp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+
+    </LinearLayout>
+</ScrollView>
