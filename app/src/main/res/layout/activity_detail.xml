@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".DetailActivity">
+<ScrollView android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
 
     <LinearLayout
         android:orientation="vertical"
@@ -26,8 +30,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <TextView android:text="📦 ALMACÉN" android:textStyle="bold" android:textSize="18sp" 
-                    android:layout_height="wrap_content" 
+                <TextView android:text="📦 ALMACÉN" android:textStyle="bold" android:textSize="18sp"
+                    android:layout_height="wrap_content"
                     android:layout_width="wrap_content"/>
 
                 <ImageView android:id="@+id/imageView"
@@ -37,17 +41,17 @@
                 <TextView android:id="@+id/tvPrice"
                     android:layout_height="wrap_content"
                     android:layout_width="wrap_content"/>
-                <TextView android:id="@+id/tvBrand" 
-                    android:layout_height="wrap_content" 
+                <TextView android:id="@+id/tvBrand"
+                    android:layout_height="wrap_content"
                     android:layout_width="wrap_content"/>
-                <TextView android:id="@+id/tvType" 
-                    android:layout_height="wrap_content" 
+                <TextView android:id="@+id/tvType"
+                    android:layout_height="wrap_content"
                     android:layout_width="wrap_content"/>
-                <TextView android:id="@+id/tvCode" 
-                    android:layout_height="wrap_content" 
+                <TextView android:id="@+id/tvCode"
+                    android:layout_height="wrap_content"
                     android:layout_width="wrap_content"/>
-                <TextView android:id="@+id/tvCompany" 
-                    android:layout_height="wrap_content" 
+                <TextView android:id="@+id/tvCompany"
+                    android:layout_height="wrap_content"
                     android:layout_width="wrap_content"/>
                 <TextView android:id="@+id/tvAmount"
                     android:layout_height="wrap_content"
@@ -173,3 +177,16 @@
 
     </LinearLayout>
 </ScrollView>
+    <Button
+        android:id="@+id/btnVolver"
+        android:layout_width="120dp"
+        android:layout_height="48dp"
+        android:text="Volver"
+        android:textSize="16sp"
+        android:background="@drawable/btn_gradient_background"
+        android:textColor="@android:color/white"
+        android:elevation="8dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp" />
+
+</FrameLayout>

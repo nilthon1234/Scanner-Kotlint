@@ -1,7 +1,11 @@
 package com.example.myapplication
 
+import android.content.Context
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.View
 import android.widget.Button
 import android.widget.GridLayout
@@ -50,10 +54,19 @@ class DetailActivity : AppCompatActivity() {
 
     private lateinit var retrofit: Retrofit
     private lateinit var slipperService: SlipperService
+    //para vibrador JAJAJA
+    private lateinit var vibrator: Vibrator
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        //para el vibrador JAJAJA
+        vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detail)
+        val btnVolver = findViewById<Button>(R.id.btnVolver)
+        btnVolver.setOnClickListener {
+            finish()
+        }
 
         // Initialize views
         imageView = findViewById(R.id.imageView)
@@ -91,6 +104,7 @@ class DetailActivity : AppCompatActivity() {
 
         // Set click listeners for Vitrina and VitrinaB buttons
         btnVitrinaSize.setOnClickListener {
+            vibrateOneSecond()
             fetchDetails(url!!) { response ->
                 response?.vitrina?.let { vitrina ->
                     if (vitrina.sizes.isNullOrBlank() || vitrina.sizes == "0") {
@@ -103,6 +117,7 @@ class DetailActivity : AppCompatActivity() {
         }
 
         btnVitrinaBSize.setOnClickListener {
+            vibrateOneSecond()
             fetchDetails(url!!) { response ->
                 response?.vitrinaB?.let { vitrinaB ->
                     if (vitrinaB.sizes.isNullOrBlank() || vitrinaB.sizes == "0") {
@@ -112,6 +127,14 @@ class DetailActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+    //Para el vibrador JAJAJA
+    private fun vibrateOneSecond() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            vibrator.vibrate(200) // Para versiones antiguas
         }
     }
 
@@ -150,8 +173,17 @@ class DetailActivity : AppCompatActivity() {
                                     setBackgroundResource(R.drawable.size_button_bg)
                                     setTextColor(Color.BLACK)
                                     textSize = 14f
+                                    // Establece ancho y margen personalizados
+                                    val params = GridLayout.LayoutParams().apply {
+                                        width = 200  // ancho en píxeles, puedes usar 160, 120, etc.
+                                        height = GridLayout.LayoutParams.WRAP_CONTENT
+                                        marginEnd = 40
+                                        bottomMargin = 50
+                                    }
+                                    layoutParams = params
                                     // Set click listener for each size button
                                     setOnClickListener {
+                                        vibrateOneSecond()
                                         // Re-fetch data to ensure latest state
                                         fetchDetails(url) { response ->
                                             response?.almacen?.let { almacen ->

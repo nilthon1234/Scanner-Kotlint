@@ -24,7 +24,7 @@ import com.google.mlkit.vision.barcode.common.Barcode
 
 
 class MainActivity : AppCompatActivity() {
-
+    private var scanned = false
 
     private lateinit var previewView: PreviewView;
     private val scanner by lazy {
@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -54,6 +55,10 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == 0 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startCamara()
         }
+    }
+    override fun onResume() {
+        super.onResume()
+        scanned = false
     }
 
     private fun startCamara(){
@@ -65,13 +70,17 @@ class MainActivity : AppCompatActivity() {
             }
 
             val analyzer = ImageAnalysis.Builder().build().also {
-                it.setAnalyzer(ContextCompat.getMainExecutor(this), QRCodeAnalyzer { url ->
-                    val intent = Intent(this, DetailActivity::class.java)
-                    intent.putExtra("scanned_url", url)
-                    startActivity(intent)
-                    finish()
-                })
+                it.setAnalyzer(ContextCompat.getMainExecutor(this), QRCodeAnalyzer(
+                    onCodeScanned = { url ->
+                        scanned = true
+                        val intent = Intent(this, DetailActivity::class.java)
+                        intent.putExtra("scanned_url", url)
+                        startActivity(intent)
+                    },
+                    shouldScan = { !scanned }
+                ))
             }
+
 
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
@@ -80,23 +89,25 @@ class MainActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    class QRCodeAnalyzer(private val onCodeScanned: (String) -> Unit) : ImageAnalysis.Analyzer {
-        private var scanned = false
+    class QRCodeAnalyzer(
+        private val onCodeScanned: (String) -> Unit,
+        private val shouldScan: () -> Boolean
+    ) : ImageAnalysis.Analyzer {
 
         @OptIn(ExperimentalGetImage::class)
         override fun analyze(imageProxy: ImageProxy) {
             val mediaImage = imageProxy.image
-            if (mediaImage != null && !scanned) {
+            if (mediaImage != null && shouldScan()) {
                 val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
                 BarcodeScanning.getClient().process(image)
                     .addOnSuccessListener { barcodes ->
                         for (barcode in barcodes) {
                             barcode.rawValue?.let {
-                                scanned = true
                                 onCodeScanned(it)
                             }
                         }
-                    }.addOnCompleteListener {
+                    }
+                    .addOnCompleteListener {
                         imageProxy.close()
                     }
             } else {
@@ -104,5 +115,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 
 }
