@@ -8,17 +8,13 @@ import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
 import com.bumptech.glide.Glide
+import com.example.myapplication.data.RegisterScannerRequest
 import com.example.myapplication.data.SlipperDetail
 import com.example.myapplication.data.SlipperFullResponse
-import com.example.myapplication.databinding.ActivityDetailBinding
+import com.example.myapplication.data.VitrinaDetail
 import com.example.myapplication.interfaces.SlipperService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -40,25 +36,26 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var tvCommpany: TextView
     private lateinit var tvRepositoryType: TextView
     private lateinit var tvPrice: TextView
-    //Vitrina VitrinaB
-
+    // Vitrina VitrinaB
     private lateinit var tvVitrinaAmount: TextView
     private lateinit var tvVitrinaPrecio: TextView
     private lateinit var tvVitrinaTipo: TextView
     private lateinit var tvVitrinaBAmount: TextView
     private lateinit var tvVitrinaBPrecio: TextView
     private lateinit var tvVitrinaBTipo: TextView
-
-    //para el Boton size ALMACEN
+    // Para el Boton size ALMACEN
     private lateinit var gridSizes: GridLayout
     private lateinit var btnVitrinaSize: Button
     private lateinit var btnVitrinaBSize: Button
 
+    private lateinit var retrofit: Retrofit
+    private lateinit var slipperService: SlipperService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detail)
 
+        // Initialize views
         imageView = findViewById(R.id.imageView)
         tvBrand = findViewById(R.id.tvBrand)
         tvType = findViewById(R.id.tvType)
@@ -66,47 +63,72 @@ class DetailActivity : AppCompatActivity() {
         tvAmount = findViewById(R.id.tvAmount)
         tvGenero = findViewById(R.id.tvGenero)
         gridSizes = findViewById(R.id.gridSizes)
-
-        //Vitrina VitrinaB
-        btnVitrinaSize  = findViewById(R.id.btnVitrinaSize)
+        btnVitrinaSize = findViewById(R.id.btnVitrinaSize)
         tvVitrinaAmount = findViewById(R.id.tvVitrinaAmount)
         tvVitrinaPrecio = findViewById(R.id.tvVitrinaPrecio)
         tvVitrinaTipo = findViewById(R.id.tvVitrinaTipo)
-
-        btnVitrinaBSize   = findViewById(R.id.btnVitrinaBSize)
+        btnVitrinaBSize = findViewById(R.id.btnVitrinaBSize)
         tvVitrinaBAmount = findViewById(R.id.tvVitrinaBAmount)
         tvVitrinaBPrecio = findViewById(R.id.tvVitrinaBPrecio)
         tvVitrinaBTipo = findViewById(R.id.tvVitrinaBTipo)
+        tvPrice = findViewById(R.id.tvPrice)
 
+        // Initialize Retrofit
+        val moshi = Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+        retrofit = Retrofit.Builder()
+            .baseUrl("https://bluejay-fitting-bluebird.ngrok-free.app/")
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+        slipperService = retrofit.create(SlipperService::class.java)
 
+        // Fetch initial details
         val url = intent.getStringExtra("scanned_url")
         if (url != null) {
             fetchDetails(url)
         }
+
+        // Set click listeners for Vitrina and VitrinaB buttons
+        btnVitrinaSize.setOnClickListener {
+            fetchDetails(url!!) { response ->
+                response?.vitrina?.let { vitrina ->
+                    if (vitrina.sizes.isNullOrBlank() || vitrina.sizes == "0") {
+                        Toast.makeText(this, "Talla no disponible para VITRINA", Toast.LENGTH_SHORT).show()
+                    } else {
+                        registerScanner(vitrina, vitrina.sizes, "VITRINA")
+                    }
+                }
+            }
+        }
+
+        btnVitrinaBSize.setOnClickListener {
+            fetchDetails(url!!) { response ->
+                response?.vitrinaB?.let { vitrinaB ->
+                    if (vitrinaB.sizes.isNullOrBlank() || vitrinaB.sizes == "0") {
+                        Toast.makeText(this, "Talla no disponible para VITRINAB", Toast.LENGTH_SHORT).show()
+                    } else {
+                        registerScanner(vitrinaB, vitrinaB.sizes, "VITRINAB")
+                    }
+                }
+            }
+        }
     }
-    private fun fetchDetails(url: String) {
-        val moshi = Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://bluejay-fitting-bluebird.ngrok-free.app/")
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build()
-
-        val service = retrofit.create(SlipperService::class.java)
+    private fun fetchDetails(url: String, callback: ((SlipperFullResponse?) -> Unit)? = null) {
         val fullPath = url.substringAfter("https://bluejay-fitting-bluebird.ngrok-free.app/")
-
-        service.getSlipperDetails(fullPath).enqueue(object : Callback<SlipperFullResponse> {
+        slipperService.getSlipperDetails(fullPath).enqueue(object : Callback<SlipperFullResponse> {
             override fun onResponse(call: Call<SlipperFullResponse>, response: Response<SlipperFullResponse>) {
                 if (response.isSuccessful) {
                     val data = response.body()
+                    callback?.invoke(data)
                     val producto = data?.almacen
                     val vitrina = data?.vitrina
                     val vitrinaB = data?.vitrinaB
 
-                    // 👉 Mostrar datos de ALMACÉN
+                    // Mostrar datos de ALMACÉN
                     producto?.let {
+                        tvPrice.text = "Precio: S/ ${it.price ?: "N/A"}"
                         tvBrand.text = "Marca: ${it.brand}"
                         tvType.text = "Tipo: ${it.type}"
                         tvCode.text = "Código: ${it.codToday}"
@@ -114,43 +136,52 @@ class DetailActivity : AppCompatActivity() {
                         tvGenero.text = "Género: ${it.genero}"
 
                         gridSizes.removeAllViews() // Limpia el grid
-
                         val tallasDisponibles = it.sizes?.filter { entry -> entry.value > 0 }
 
-// Primero limpiamos el grid de tallas anteriores
-                        gridSizes.removeAllViews()
-
                         if (tallasDisponibles.isNullOrEmpty()) {
-                            // Si no hay tallas disponibles, ocultamos el grid
                             gridSizes.visibility = View.GONE
                         } else {
-                            // Si hay tallas, mostramos el grid
                             gridSizes.visibility = View.VISIBLE
-
                             tallasDisponibles.forEach { entry ->
                                 val size = entry.key
                                 val cantidad = entry.value
-
                                 val button = Button(this@DetailActivity).apply {
                                     text = "$size ($cantidad)"
-                                    setBackgroundResource(R.drawable.size_button_bg) // asegúrate de tener este fondo
+                                    setBackgroundResource(R.drawable.size_button_bg)
                                     setTextColor(Color.BLACK)
                                     textSize = 14f
+                                    // Set click listener for each size button
+                                    setOnClickListener {
+                                        // Re-fetch data to ensure latest state
+                                        fetchDetails(url) { response ->
+                                            response?.almacen?.let { almacen ->
+                                                if (almacen.sizes?.get(size)?.let { it > 0 } == true) {
+                                                    registerScanner(almacen, size, "ALMACEN")
+                                                } else {
+                                                    Toast.makeText(
+                                                        this@DetailActivity,
+                                                        "Talla $size no disponible para ALMACEN",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-
                                 gridSizes.addView(button)
                             }
                         }
-
-
 
                         val imageUrl = it.urlImg?.replace("http://localhost:80", "https://bluejay-fitting-bluebird.ngrok-free.app")
                         Glide.with(this@DetailActivity).load(imageUrl).into(imageView)
                     }
 
-                    // 👉 Mostrar datos de VITRINA
+                    // Mostrar datos de VITRINA
                     vitrina?.let {
-                        if (it.size.isNullOrBlank() || it.size == "0") {
+                        tvVitrinaAmount.text = "Cantidad: ${it.amount ?: "N/A"}"
+                        tvVitrinaPrecio.text = "Precio: S/ ${it.precio ?: "N/A"}"
+                        tvVitrinaTipo.text = "Tipo: ${it.type ?: "N/A"}"
+                        if (it.sizes.isNullOrBlank() || it.sizes == "0") {
                             btnVitrinaSize.apply {
                                 text = "Talla no disponible"
                                 isEnabled = false
@@ -158,20 +189,22 @@ class DetailActivity : AppCompatActivity() {
                             }
                         } else {
                             btnVitrinaSize.apply {
-                                text = "Talla: ${it.size}"
+                                text = "Talla: ${it.sizes}"
                                 isEnabled = true
-                                setBackgroundColor(ContextCompat.getColor(context, R.color.purple_200)) // o el color original
+                                setBackgroundColor(ContextCompat.getColor(context, R.color.purple_200))
                             }
                         }
-
                         tvVitrinaAmount.text = "Cantidad: ${it.amount ?: "N/A"}"
                         tvVitrinaPrecio.text = "Precio: S/ ${it.precio ?: "N/A"}"
                         tvVitrinaTipo.text = "Tipo: ${it.type ?: "N/A"}"
                     }
 
-                    // 👉 Mostrar datos de VITRINA B
+                    // Mostrar datos de VITRINA B
                     vitrinaB?.let {
-                        if (it.size.isNullOrBlank() || it.size == "0") {
+                        tvVitrinaBAmount.text = "Cantidad: ${it.amount ?: "N/A"}"
+                        tvVitrinaBPrecio.text = "Precio: S/ ${it.precio ?: "N/A"}"
+                        tvVitrinaBTipo.text = "Tipo: ${it.type ?: "N/A"}"
+                        if (it.sizes.isNullOrBlank() || it.sizes == "0") {
                             btnVitrinaBSize.apply {
                                 text = "Talla no disponible"
                                 isEnabled = false
@@ -179,29 +212,70 @@ class DetailActivity : AppCompatActivity() {
                             }
                         } else {
                             btnVitrinaBSize.apply {
-                                text = "Talla: ${it.size}"
+                                text = "Talla: ${it.sizes}"
                                 isEnabled = true
                                 setBackgroundColor(ContextCompat.getColor(context, R.color.purple_200))
                             }
                         }
-
                         tvVitrinaBAmount.text = "Cantidad: ${it.amount ?: "N/A"}"
                         tvVitrinaBPrecio.text = "Precio: S/ ${it.precio ?: "N/A"}"
                         tvVitrinaBTipo.text = "Tipo: ${it.type ?: "N/A"}"
                     }
-
                 } else {
                     Toast.makeText(this@DetailActivity, "Respuesta vacía", Toast.LENGTH_LONG).show()
+                    callback?.invoke(null)
                 }
             }
 
             override fun onFailure(call: Call<SlipperFullResponse>, t: Throwable) {
                 Toast.makeText(this@DetailActivity, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                callback?.invoke(null)
             }
         })
     }
 
+    private fun registerScanner(detail: Any, size: String, repositoryType: String) {
+        val request = when (detail) {
+            is VitrinaDetail -> RegisterScannerRequest(
+                codToday = detail.codToday,
+                repositoryType = repositoryType,
+                company = detail.company,
+                maquina = detail.maquina ?: "MAQ02",
+                size = size,
+                type = detail.type,
+                genero = detail.genero,
+                price = detail.precio
+            )
+            is SlipperDetail -> RegisterScannerRequest(
+                codToday = detail.codToday,
+                repositoryType = repositoryType,
+                company = detail.company,
+                maquina = detail.maquina ?: "MAQ02",
+                size = size,
+                type = detail.type,
+                genero = detail.genero,
+                price = detail.price
+            )
+            else -> return
+        }
 
+        slipperService.saveScanner(request).enqueue(object : Callback<Unit> {
+            override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(this@DetailActivity, "Registro exitoso en $repositoryType", Toast.LENGTH_SHORT).show()
+                    // Refresh the details to reflect updated data
+                    val url = intent.getStringExtra("scanned_url")
+                    if (url != null) {
+                        fetchDetails(url)
+                    }
+                } else {
+                    Toast.makeText(this@DetailActivity, "Error al registrar: ${response.message()}", Toast.LENGTH_LONG).show()
+                }
+            }
 
-
+            override fun onFailure(call: Call<Unit>, t: Throwable) {
+                Toast.makeText(this@DetailActivity, "Error de red: ${t.message}", Toast.LENGTH_LONG).show()
+            }
+        })
+    }
 }

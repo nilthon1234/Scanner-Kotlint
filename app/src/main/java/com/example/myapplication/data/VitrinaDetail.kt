@@ -13,7 +13,7 @@ data class VitrinaDetail (
     @Json(name = "image") val image: String?,
     @Json(name = "genero") val genero: String?,
     @Json(name = "company") val company: String?,
-    @Json(name = "size") val size: String?,
+    @Json(name = "size") val sizes: String?,
     @Json(name = "precio") val precio: Double?,
     @Json(name = "type") val type: String?,
     @Json(name = "registrationDate") val registrationDate: String?,
