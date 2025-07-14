@@ -29,6 +29,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 class DetailActivity : AppCompatActivity() {
+    //para el boton amount
+    private lateinit var btnAmount: Button
 
     private lateinit var imageView: ImageView
     private lateinit var tvBrand: TextView
@@ -85,6 +87,8 @@ class DetailActivity : AppCompatActivity() {
         tvVitrinaBPrecio = findViewById(R.id.tvVitrinaBPrecio)
         tvVitrinaBTipo = findViewById(R.id.tvVitrinaBTipo)
         tvPrice = findViewById(R.id.tvPrice)
+        btnAmount = findViewById(R.id.btnAmount)
+
 
         // Initialize Retrofit
         val moshi = Moshi.Builder()
@@ -150,16 +154,34 @@ class DetailActivity : AppCompatActivity() {
                     val vitrinaB = data?.vitrinaB
 
                     // Mostrar datos de ALMACÉN
-                    producto?.let {
-                        tvPrice.text = "Precio: S/ ${it.price ?: "N/A"}"
-                        tvBrand.text = "Marca: ${it.brand}"
-                        tvType.text = "Tipo: ${it.type}"
-                        tvCode.text = "Código: ${it.codToday}"
-                        tvAmount.text = "Cantidad: ${it.amount}"
-                        tvGenero.text = "Género: ${it.genero}"
+                    producto?.let { item ->
+                        tvPrice.text = "Precio: S/ ${item.price ?: "N/A"}"
+                        tvBrand.text = "Marca: ${item.brand}"
+                        tvType.text = "Tipo: ${item.type}"
+                        tvCode.text = "Código: ${item.codToday}"
+                        tvAmount.text = "Cantidad: ${item.amount}"
+                        tvGenero.text = "Género: ${item.genero}"
+                        tvAmount.visibility = View.VISIBLE
+                        btnAmount.visibility = View.GONE
+                        val typePermitidos = listOf("GORRA", "CANGURO", "MEDIAS")
+                        val amount = item.amount ?: 0
 
-                        gridSizes.removeAllViews() // Limpia el grid
-                        val tallasDisponibles = it.sizes?.filter { entry -> entry.value > 0 }
+                        if (typePermitidos.contains(item.type?.uppercase()) && amount > 0) {
+                            tvAmount.visibility = View.GONE
+                            btnAmount.apply {
+                                visibility = View.VISIBLE
+                                text = "Cantidad: $amount"
+                                setOnClickListener {
+                                    vibrateOneSecond()
+                                    registerScanner(item, null, "ALMACEN") // ✅ usamos item, no it
+                                }
+                            }
+                        } else {
+                            tvAmount.text = "Cantidad: ${item.amount ?: "N/A"}"
+                        }
+
+                        gridSizes.removeAllViews()
+                        val tallasDisponibles = item.sizes?.filter { entry -> entry.value > 0 }
 
                         if (tallasDisponibles.isNullOrEmpty()) {
                             gridSizes.visibility = View.GONE
@@ -173,18 +195,15 @@ class DetailActivity : AppCompatActivity() {
                                     setBackgroundResource(R.drawable.size_button_bg)
                                     setTextColor(Color.BLACK)
                                     textSize = 14f
-                                    // Establece ancho y margen personalizados
                                     val params = GridLayout.LayoutParams().apply {
-                                        width = 200  // ancho en píxeles, puedes usar 160, 120, etc.
+                                        width = 200
                                         height = GridLayout.LayoutParams.WRAP_CONTENT
                                         marginEnd = 40
                                         bottomMargin = 50
                                     }
                                     layoutParams = params
-                                    // Set click listener for each size button
                                     setOnClickListener {
                                         vibrateOneSecond()
-                                        // Re-fetch data to ensure latest state
                                         fetchDetails(url) { response ->
                                             response?.almacen?.let { almacen ->
                                                 if (almacen.sizes?.get(size)?.let { it > 0 } == true) {
@@ -204,7 +223,7 @@ class DetailActivity : AppCompatActivity() {
                             }
                         }
 
-                        val imageUrl = it.urlImg?.replace("http://localhost:80", "https://bluejay-fitting-bluebird.ngrok-free.app")
+                        val imageUrl = item.urlImg?.replace("http://localhost:80", "https://bluejay-fitting-bluebird.ngrok-free.app")
                         Glide.with(this@DetailActivity).load(imageUrl).into(imageView)
                     }
 
@@ -226,9 +245,6 @@ class DetailActivity : AppCompatActivity() {
                                 setBackgroundColor(ContextCompat.getColor(context, R.color.purple_200))
                             }
                         }
-                        tvVitrinaAmount.text = "Cantidad: ${it.amount ?: "N/A"}"
-                        tvVitrinaPrecio.text = "Precio: S/ ${it.precio ?: "N/A"}"
-                        tvVitrinaTipo.text = "Tipo: ${it.type ?: "N/A"}"
                     }
 
                     // Mostrar datos de VITRINA B
@@ -249,9 +265,6 @@ class DetailActivity : AppCompatActivity() {
                                 setBackgroundColor(ContextCompat.getColor(context, R.color.purple_200))
                             }
                         }
-                        tvVitrinaBAmount.text = "Cantidad: ${it.amount ?: "N/A"}"
-                        tvVitrinaBPrecio.text = "Precio: S/ ${it.precio ?: "N/A"}"
-                        tvVitrinaBTipo.text = "Tipo: ${it.type ?: "N/A"}"
                     }
                 } else {
                     Toast.makeText(this@DetailActivity, "Respuesta vacía", Toast.LENGTH_LONG).show()
@@ -266,7 +279,8 @@ class DetailActivity : AppCompatActivity() {
         })
     }
 
-    private fun registerScanner(detail: Any, size: String, repositoryType: String) {
+
+    private fun registerScanner(detail: Any, size: String?, repositoryType: String) {
         val request = when (detail) {
             is VitrinaDetail -> RegisterScannerRequest(
                 codToday = detail.codToday,
