@@ -131,6 +131,13 @@
                     android:textColor="@android:color/white"
                     android:drawableLeft="@drawable/ic_check_circle"
                     android:drawablePadding="8dp"/>
+                <GridLayout
+                    android:id="@+id/gridVitrinaSizes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="3"
+                    android:layout_marginTop="12dp"
+                    />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -181,6 +188,13 @@
                     android:textColor="@android:color/white"
                     android:drawableLeft="@drawable/ic_check_circle"
                     android:drawablePadding="8dp"/>
+                <GridLayout
+                    android:id="@+id/gridVitrinaBSizes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="3"
+                    android:layout_marginTop="12dp"
+                    />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

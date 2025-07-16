@@ -54,6 +54,9 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var btnVitrinaSize: Button
     private lateinit var btnVitrinaBSize: Button
 
+    private lateinit var gridVitrinaSizes: GridLayout
+    private lateinit var gridVitrinaBSizes: GridLayout
+
     private lateinit var retrofit: Retrofit
     private lateinit var slipperService: SlipperService
     //para vibrador JAJAJA
@@ -88,6 +91,9 @@ class DetailActivity : AppCompatActivity() {
         tvVitrinaBTipo = findViewById(R.id.tvVitrinaBTipo)
         tvPrice = findViewById(R.id.tvPrice)
         btnAmount = findViewById(R.id.btnAmount)
+        gridVitrinaSizes = findViewById(R.id.gridVitrinaSizes)
+        gridVitrinaBSizes = findViewById(R.id.gridVitrinaBSizes)
+
 
 
         // Initialize Retrofit
@@ -136,9 +142,9 @@ class DetailActivity : AppCompatActivity() {
     //Para el vibrador JAJAJA
     private fun vibrateOneSecond() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+            vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
         } else {
-            vibrator.vibrate(200) // Para versiones antiguas
+            vibrator.vibrate(100) // Para versiones antiguas
         }
     }
 
@@ -228,44 +234,98 @@ class DetailActivity : AppCompatActivity() {
                     }
 
                     // Mostrar datos de VITRINA
-                    vitrina?.let {
-                        tvVitrinaAmount.text = "Cantidad: ${it.amount ?: "N/A"}"
-                        tvVitrinaPrecio.text = "Precio: S/ ${it.precio ?: "N/A"}"
-                        tvVitrinaTipo.text = "Tipo: ${it.type ?: "N/A"}"
-                        if (it.sizes.isNullOrBlank() || it.sizes == "0") {
-                            btnVitrinaSize.apply {
-                                text = "Talla no disponible"
-                                isEnabled = false
-                                setBackgroundColor(Color.LTGRAY)
-                            }
+                    vitrina?.let { vitrinaObj ->
+                        tvVitrinaAmount.text = "Cantidad: ${vitrinaObj.amount ?: "N/A"}"
+                        tvVitrinaPrecio.text = "Precio: S/ ${vitrinaObj.precio ?: "N/A"}"
+                        tvVitrinaTipo.text = "Tipo: ${vitrinaObj.type ?: "N/A"}"
+
+                        gridVitrinaSizes.removeAllViews()
+
+                        if (vitrinaObj.sizes.isNullOrBlank() || vitrinaObj.sizes == "0") {
+                            btnVitrinaSize.text = "Talla no disponible"
+                            btnVitrinaSize.isEnabled = false
+                            btnVitrinaSize.setBackgroundColor(Color.LTGRAY)
+                            gridVitrinaSizes.visibility = View.GONE
                         } else {
-                            btnVitrinaSize.apply {
-                                text = "Talla: ${it.sizes}"
-                                isEnabled = true
-                                setBackgroundColor(ContextCompat.getColor(context, R.color.purple_200))
+                            btnVitrinaSize.visibility = View.GONE // Ocultamos el botón antiguo
+                            gridVitrinaSizes.visibility = View.VISIBLE
+
+                            val tallas = vitrinaObj.sizes
+                                .split(",")
+                                .mapNotNull { it.trim().toDoubleOrNull() } // convertir a Double para orden
+                                .sorted()
+                                .map { it.toString() } // devolver a String si deseas mostrar como texto
+
+                            tallas.forEach { tallaStr ->
+                                val button = Button(this@DetailActivity).apply {
+                                    text = "Talla: $tallaStr"
+                                    setBackgroundResource(R.drawable.size_button_bg)
+                                    setTextColor(Color.BLACK)
+                                    textSize = 14f
+                                    val params = GridLayout.LayoutParams().apply {
+                                        width = 200
+                                        height = GridLayout.LayoutParams.WRAP_CONTENT
+                                        marginEnd = 40
+                                        bottomMargin = 50
+                                    }
+                                    layoutParams = params
+                                    setOnClickListener {
+                                        vibrateOneSecond()
+                                        registerScanner(vitrinaObj, tallaStr, "VITRINA")
+                                    }
+                                }
+                                gridVitrinaSizes.addView(button)
                             }
                         }
                     }
 
+
                     // Mostrar datos de VITRINA B
-                    vitrinaB?.let {
-                        tvVitrinaBAmount.text = "Cantidad: ${it.amount ?: "N/A"}"
-                        tvVitrinaBPrecio.text = "Precio: S/ ${it.precio ?: "N/A"}"
-                        tvVitrinaBTipo.text = "Tipo: ${it.type ?: "N/A"}"
-                        if (it.sizes.isNullOrBlank() || it.sizes == "0") {
-                            btnVitrinaBSize.apply {
-                                text = "Talla no disponible"
-                                isEnabled = false
-                                setBackgroundColor(Color.LTGRAY)
-                            }
+                    vitrinaB?.let { vitrinaBObj ->
+                        tvVitrinaBAmount.text = "Cantidad: ${vitrinaBObj.amount ?: "N/A"}"
+                        tvVitrinaBPrecio.text = "Precio: S/ ${vitrinaBObj.precio ?: "N/A"}"
+                        tvVitrinaBTipo.text = "Tipo: ${vitrinaBObj.type ?: "N/A"}"
+
+                        gridVitrinaBSizes.removeAllViews()
+
+                        if (vitrinaBObj.sizes.isNullOrBlank() || vitrinaBObj.sizes == "0") {
+                            btnVitrinaBSize.text = "Talla no disponible"
+                            btnVitrinaBSize.isEnabled = false
+                            btnVitrinaBSize.setBackgroundColor(Color.LTGRAY)
+                            gridVitrinaBSizes.visibility = View.GONE
                         } else {
-                            btnVitrinaBSize.apply {
-                                text = "Talla: ${it.sizes}"
-                                isEnabled = true
-                                setBackgroundColor(ContextCompat.getColor(context, R.color.purple_200))
+                            btnVitrinaBSize.visibility = View.GONE // Ocultamos el botón antiguo
+                            gridVitrinaBSizes.visibility = View.VISIBLE
+
+                            val tallas = vitrinaBObj.sizes
+                                .split(",")
+                                .mapNotNull { it.trim().toDoubleOrNull() } // convertir a Double para orden
+                                .sorted()
+                                .map { it.toString() } // devolver a String si deseas mostrar como texto
+
+                            tallas.forEach { tallaStr ->
+                                val button = Button(this@DetailActivity).apply {
+                                    text = "Talla: $tallaStr"
+                                    setBackgroundResource(R.drawable.size_button_bg)
+                                    setTextColor(Color.BLACK)
+                                    textSize = 14f
+                                    val params = GridLayout.LayoutParams().apply {
+                                        width = 200
+                                        height = GridLayout.LayoutParams.WRAP_CONTENT
+                                        marginEnd = 40
+                                        bottomMargin = 50
+                                    }
+                                    layoutParams = params
+                                    setOnClickListener {
+                                        vibrateOneSecond()
+                                        registerScanner(vitrinaBObj, tallaStr, "VITRINAB")
+                                    }
+                                }
+                                gridVitrinaBSizes.addView(button)
                             }
                         }
                     }
+
                 } else {
                     Toast.makeText(this@DetailActivity, "Respuesta vacía", Toast.LENGTH_LONG).show()
                     callback?.invoke(null)
