@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.text.HtmlCompat
 import com.bumptech.glide.Glide
 import com.example.myapplication.data.RegisterScannerRequest
 import com.example.myapplication.data.SlipperDetail
@@ -187,24 +188,39 @@ class DetailActivity : AppCompatActivity() {
                         }
 
                         gridSizes.removeAllViews()
-                        val tallasDisponibles = item.sizes?.filter { entry -> entry.value > 0 }
+                        val tallasDisponibles = item.sizes?.filter { it.value > 0 }
 
                         if (tallasDisponibles.isNullOrEmpty()) {
                             gridSizes.visibility = View.GONE
                         } else {
                             gridSizes.visibility = View.VISIBLE
-                            tallasDisponibles.forEach { entry ->
-                                val size = entry.key
-                                val cantidad = entry.value
+
+                            // Ordenar por prefijo (USA, EU) y luego por valor numérico
+                            val tallasOrdenadas = tallasDisponibles
+                                .toList()
+                                .sortedWith(compareBy(
+                                    { extraerPrefijo(it.first) },
+                                    { extraerValorNumerico(it.first) }
+                                ))
+
+                            tallasOrdenadas.forEach { entry ->
+                                val size = entry.first
+                                val cantidad = entry.second
+                                val sizeVisual = size
+                                    .replace(Regex("[A-Za-z]+"), "") // quita EU o USA
+                                    .replace("_", ".")
                                 val button = Button(this@DetailActivity).apply {
-                                    text = "$size ($cantidad)"
+                                    text = HtmlCompat.fromHtml(
+                                        "$sizeVisual (<font color='#007BFF'>$cantidad</font>)",
+                                        HtmlCompat.FROM_HTML_MODE_LEGACY
+                                    )
                                     setBackgroundResource(R.drawable.size_button_bg)
                                     setTextColor(Color.BLACK)
                                     textSize = 14f
                                     val params = GridLayout.LayoutParams().apply {
-                                        width = 200
+                                        width = 205
                                         height = GridLayout.LayoutParams.WRAP_CONTENT
-                                        marginEnd = 40
+                                        marginEnd = 86
                                         bottomMargin = 50
                                     }
                                     layoutParams = params
@@ -217,7 +233,7 @@ class DetailActivity : AppCompatActivity() {
                                                 } else {
                                                     Toast.makeText(
                                                         this@DetailActivity,
-                                                        "Talla $size no disponible para ALMACEN",
+                                                        "Talla $size no disponible para ALMACÉN",
                                                         Toast.LENGTH_SHORT
                                                     ).show()
                                                 }
@@ -228,6 +244,7 @@ class DetailActivity : AppCompatActivity() {
                                 gridSizes.addView(button)
                             }
                         }
+
 
                         val imageUrl = item.urlImg?.replace("http://localhost:80", "https://bluejay-fitting-bluebird.ngrok-free.app")
                         Glide.with(this@DetailActivity).load(imageUrl).into(imageView)
@@ -338,6 +355,19 @@ class DetailActivity : AppCompatActivity() {
             }
         })
     }
+    // Extrae el valor numérico (con decimales) para ordenar tallas como USA_8, USA8_5, EU32_5
+    private fun extraerValorNumerico(talla: String): Double {
+        val regex = Regex("""\d+(?:_?\d+)?""") // Busca números como 8, 8_5, 32_5
+        val match = regex.find(talla)?.value?.replace("_", ".")
+        return match?.toDoubleOrNull() ?: Double.MAX_VALUE
+    }
+
+    // Extrae el prefijo (EU, USA, etc.)
+    private fun extraerPrefijo(talla: String): String {
+        val regex = Regex("""^[A-Za-z]+""")
+        return regex.find(talla)?.value ?: ""
+    }
+
 
 
     private fun registerScanner(detail: Any, size: String?, repositoryType: String) {
