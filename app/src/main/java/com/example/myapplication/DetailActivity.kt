@@ -161,6 +161,7 @@ class DetailActivity : AppCompatActivity() {
                     val vitrinaB = data?.vitrinaB
 
                     // Mostrar datos de ALMACÉN
+                    // Mostrar datos de ALMACÉN
                     producto?.let { item ->
                         tvPrice.text = "Precio: S/ ${item.price ?: "N/A"}"
                         tvBrand.text = "Marca: ${item.brand}"
@@ -180,7 +181,7 @@ class DetailActivity : AppCompatActivity() {
                                 text = "Cantidad: $amount"
                                 setOnClickListener {
                                     vibrateOneSecond()
-                                    registerScanner(item, null, "ALMACEN") // ✅ usamos item, no it
+                                    registerScanner(item, null, "ALMACEN")
                                 }
                             }
                         } else {
@@ -203,18 +204,38 @@ class DetailActivity : AppCompatActivity() {
                                     { extraerValorNumerico(it.first) }
                                 ))
 
+                            // Obtener la lista de tallas en SEPARATION
+                            val separationSizes = data?.separation?.map { it.size } ?: emptyList()
+
                             tallasOrdenadas.forEach { entry ->
                                 val size = entry.first
                                 val cantidad = entry.second
                                 val sizeVisual = size
                                     .replace(Regex("[A-Za-z]+"), "") // quita EU o USA
                                     .replace("_", ".")
+
+                                // Contar cuántas veces aparece esta talla en SEPARATION
+                                val separationCount = separationSizes.count { it == size }
+
                                 val button = Button(this@DetailActivity).apply {
-                                    text = HtmlCompat.fromHtml(
-                                        "$sizeVisual (<font color='#007BFF'>$cantidad</font>)",
-                                        HtmlCompat.FROM_HTML_MODE_LEGACY
-                                    )
-                                    setBackgroundResource(R.drawable.size_button_bg)
+                                    // Si hay separaciones, mostrar la cantidad disponible y la cantidad separada
+                                    text = if (separationCount > 0) {
+                                        HtmlCompat.fromHtml(
+                                            "$sizeVisual (<font color='#007BFF'>$cantidad</font> | <font color='#FFA500'>$separationCount</font>)",
+                                            HtmlCompat.FROM_HTML_MODE_LEGACY
+                                        )
+                                    } else {
+                                        HtmlCompat.fromHtml(
+                                            "$sizeVisual (<font color='#007BFF'>$cantidad</font>)",
+                                            HtmlCompat.FROM_HTML_MODE_LEGACY
+                                        )
+                                    }
+                                    // Aplicar fondo rojo si hay separaciones
+                                    setBackgroundResource(if (separationCount > 0) {
+                                        R.drawable.size_button_red_bg // Asegúrate de crear este recurso
+                                    } else {
+                                        R.drawable.size_button_bg
+                                    })
                                     setTextColor(Color.BLACK)
                                     textSize = 14f
                                     val params = GridLayout.LayoutParams().apply {
@@ -244,7 +265,6 @@ class DetailActivity : AppCompatActivity() {
                                 gridSizes.addView(button)
                             }
                         }
-
 
                         val imageUrl = item.urlImg?.replace("http://localhost:80", "https://bluejay-fitting-bluebird.ngrok-free.app")
                         Glide.with(this@DetailActivity).load(imageUrl).into(imageView)
