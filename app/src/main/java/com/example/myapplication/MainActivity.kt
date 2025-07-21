@@ -1,5 +1,7 @@
 package com.example.myapplication
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +15,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.view.View
 import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
@@ -34,16 +37,33 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+
         previewView = findViewById(R.id.previewView)
-        startCamara()
+        val laserLine = findViewById<View>(R.id.laserLine)
+        val overlayFrame = findViewById<View>(R.id.overlayFrame)
+
+        // Animación
+        overlayFrame.post {
+            val height = overlayFrame.height.toFloat()
+            val animator = ObjectAnimator.ofFloat(
+                laserLine, "translationY", 0f, height - laserLine.height
+            ).apply {
+                duration = 2000
+                repeatCount = ValueAnimator.INFINITE
+                repeatMode = ValueAnimator.REVERSE
+            }
+            animator.start()
+        }
+
+        // Permisos y cámara
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA), 0)
         } else {
             startCamara()
         }
-
     }
+
 
 
     override fun onRequestPermissionsResult(
