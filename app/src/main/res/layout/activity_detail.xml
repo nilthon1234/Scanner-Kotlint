@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".DetailActivity">
+    tools:context=".ui.detail.DetailActivity">
 <ScrollView android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
@@ -18,6 +18,7 @@
 
         <!-- ALMACÉN -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAlmacen"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -37,7 +38,7 @@
                 <ImageView android:id="@+id/imageView"
                     android:layout_width="match_parent"
                     android:layout_height="200dp"
-                    android:scaleType="centerCrop"/>
+                    android:scaleType="centerInside" />
                 <TextView android:id="@+id/tvPrice"
                     android:layout_height="wrap_content"
                     android:layout_width="wrap_content"/>
@@ -87,6 +88,7 @@
 
         <!-- Sección VITRINA -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardVitrina"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -144,6 +146,7 @@
 
         <!-- VITRINA B -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardVitrinaB"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"

@@ -1,8 +1,7 @@
-package com.example.myapplication.interfaces
+package com.example.myapplication.data.api
 
-import com.example.myapplication.data.RegisterScannerRequest
-import com.example.myapplication.data.SlipperDetail
-import com.example.myapplication.data.SlipperFullResponse
+import com.example.myapplication.data.model.RegisterScannerRequest
+import com.example.myapplication.data.model.SlipperFullResponse
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET

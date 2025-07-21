@@ -1,4 +1,4 @@
-package com.example.myapplication.data
+package com.example.myapplication.data.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

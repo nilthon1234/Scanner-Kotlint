@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.myapplication.ui.main
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
@@ -9,8 +9,6 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.google.mlkit.vision.barcode.BarcodeScanning
 
 import android.content.Intent
@@ -22,8 +20,9 @@ import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.myapplication.R
+import com.example.myapplication.ui.detail.DetailActivity
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.barcode.common.Barcode
 
 
 class MainActivity : AppCompatActivity() {
