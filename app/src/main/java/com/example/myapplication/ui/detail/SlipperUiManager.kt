@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.GridLayout
@@ -14,6 +15,7 @@ import android.widget.Toast
 import androidx.core.text.HtmlCompat
 import com.bumptech.glide.Glide
 import com.example.myapplication.R
+import com.example.myapplication.data.api.UrlConstantsHttps
 import com.example.myapplication.data.model.SlipperFullResponse
 import com.example.myapplication.utils.SlipperUtils
 import com.google.android.material.card.MaterialCardView
@@ -145,7 +147,7 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                         gridSizes.addView(button)
                     }
                 }
-                val imageUrl = item.urlImg?.replace("http://localhost:80", "https://bluejay-fitting-bluebird.ngrok-free.app")
+                val imageUrl = item.urlImg?.replace(UrlConstantsHttps.LOCALHOST_URL, UrlConstantsHttps.BASE_URL)
                 Glide.with(context).load(imageUrl).into(imageView)
             }
         } else {

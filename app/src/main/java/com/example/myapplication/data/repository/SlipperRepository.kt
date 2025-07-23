@@ -1,6 +1,7 @@
 package com.example.myapplication.data.repository
 
 import com.example.myapplication.data.api.SlipperService
+import com.example.myapplication.data.api.UrlConstantsHttps
 import com.example.myapplication.data.model.RegisterScannerRequest
 import com.example.myapplication.data.model.SlipperDetail
 import com.example.myapplication.data.model.SlipperFullResponse
@@ -11,7 +12,7 @@ import retrofit2.Response
 
 class SlipperRepository (private val slipperService: SlipperService) {
     fun fetchDetails(url: String, callback: (SlipperFullResponse?) -> Unit) {
-        val fullPath = url.substringAfter("https://bluejay-fitting-bluebird.ngrok-free.app/")
+        val fullPath = url.substringAfter(UrlConstantsHttps.BASE_URL)
         slipperService.getSlipperDetails(fullPath).enqueue(object : Callback<SlipperFullResponse> {
             override fun onResponse(call: Call<SlipperFullResponse>, response: Response<SlipperFullResponse>) {
                 if (response.isSuccessful) {

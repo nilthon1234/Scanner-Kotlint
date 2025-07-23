@@ -21,6 +21,7 @@ import com.example.myapplication.data.model.SlipperDetail
 import com.example.myapplication.data.model.SlipperFullResponse
 import com.example.myapplication.data.model.VitrinaDetail
 import com.example.myapplication.data.api.SlipperService
+import com.example.myapplication.data.api.UrlConstantsHttps
 import com.example.myapplication.data.repository.SlipperRepository
 import com.google.android.material.card.MaterialCardView
 import com.squareup.moshi.Moshi
@@ -70,7 +71,7 @@ class DetailActivity : AppCompatActivity() {
 
         // Initialize Retrofit and repository
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://bluejay-fitting-bluebird.ngrok-free.app/")
+            .baseUrl(UrlConstantsHttps.BASE_URL)
             .addConverterFactory(MoshiConverterFactory.create(
                 Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
             ))
