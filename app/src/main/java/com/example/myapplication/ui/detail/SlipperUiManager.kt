@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.GridLayout
@@ -20,7 +19,6 @@ import com.example.myapplication.data.model.SlipperFullResponse
 import com.example.myapplication.utils.SlipperUtils
 import com.google.android.material.card.MaterialCardView
 
-
 class SlipperUiManager(private val context: Context, private val vibrator: Vibrator) {
     fun vibrateOneSecond() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -32,6 +30,13 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
 
     fun showToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
+    // Helper function to parse comma-separated sizes into a map with counts
+    private fun parseSizes(sizeString: String?): Map<String, Int> {
+        if (sizeString.isNullOrBlank()) return emptyMap()
+        val sizes = sizeString.split(",").map { it.trim() }
+        return sizes.groupingBy { it }.eachCount()
     }
 
     fun updateUI(
@@ -60,7 +65,10 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
         cardVitrinaB: MaterialCardView,
         onSizeClick: (Any, String?, String) -> Unit
     ) {
-        // Update ALMACEN
+        val typePermitidos = listOf("GORRA", "CANGURO", "MEDIAS")
+        val typeLetras = listOf("PANTALON", "POLO", "POLERA")
+
+        // Update ALMACEN (unchanged)
         if (response.almacen != null) {
             cardAlmacen.visibility = View.VISIBLE
             response.almacen?.let { item ->
@@ -73,8 +81,6 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                 tvAmount.visibility = View.VISIBLE
                 btnAmount.visibility = View.GONE
 
-                val typePermitidos = listOf("GORRA", "CANGURO", "MEDIAS")
-                val typeLetras = listOf("PANTALON", "POLO", "POLERA") // Added types for letter-based sizes
                 val amount = item.amount ?: 0
                 if (typePermitidos.contains(item.type?.uppercase()) && amount > 0) {
                     tvAmount.visibility = View.GONE
@@ -97,13 +103,11 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                 } else {
                     gridSizes.visibility = View.VISIBLE
                     val tallasOrdenadas = if (typeLetras.contains(item.type?.uppercase())) {
-                        // Filter only letter-based sizes for PANTALON, POLO, POLERA
                         tallasDisponibles
-                            .filter { it.key.matches(Regex("^[a-zA-Z]+$")) } // Only letter-based sizes (e.g., l, m, s, xl, xs)
+                            .filter { it.key.matches(Regex("^[a-zA-Z]+$")) }
                             .toList()
-                            .sortedBy { it.first } // Sort alphabetically for consistency
+                            .sortedBy { it.first }
                     } else {
-                        // Existing logic for other types
                         tallasDisponibles
                             .toList()
                             .sortedWith(compareBy(
@@ -116,7 +120,7 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                         val size = entry.first
                         val cantidad = entry.second
                         val sizeVisual = if (typeLetras.contains(item.type?.uppercase())) {
-                            size // Show raw letter size (e.g., "l", "m", "s")
+                            size
                         } else {
                             size.replace(Regex("[A-Za-z]+"), "").replace("_", ".")
                         }
@@ -174,7 +178,9 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                 tvVitrinaPrecio.text = "Precio: S/ ${vitrinaObj.precio ?: "N/A"}"
                 tvVitrinaTipo.text = "Tipo: ${vitrinaObj.type ?: "N/A"}"
                 gridVitrinaSizes.removeAllViews()
-                if (vitrinaObj.sizes.isNullOrBlank() || vitrinaObj.sizes == "0") {
+
+                val sizesMap = parseSizes(vitrinaObj.sizes)
+                if (sizesMap.isEmpty()) {
                     btnVitrinaSize.text = "Talla no disponible"
                     btnVitrinaSize.isEnabled = false
                     btnVitrinaSize.setBackgroundColor(Color.LTGRAY)
@@ -182,19 +188,50 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                 } else {
                     btnVitrinaSize.visibility = View.GONE
                     gridVitrinaSizes.visibility = View.VISIBLE
-                    val tallas = vitrinaObj.sizes
-                        .split(",")
-                        .mapNotNull { it.trim().toDoubleOrNull() }
-                        .sorted()
-                        .map { it.toString() }
-                    tallas.forEach { tallaStr ->
+                    val tallasOrdenadas = if (typeLetras.contains(vitrinaObj.type?.uppercase())) {
+                        sizesMap
+                            .filter { it.key.matches(Regex("^[a-zA-Z]+$")) }
+                            .toList()
+                            .sortedBy { it.first }
+                    } else {
+                        sizesMap
+                            .toList()
+                            .sortedWith(compareBy(
+                                { SlipperUtils.extraerPrefijo(it.first) },
+                                { SlipperUtils.extraerValorNumerico(it.first) }
+                            ))
+                    }
+                    val separationSizes = response.separation?.map { it.size } ?: emptyList()
+                    tallasOrdenadas.forEach { entry ->
+                        val size = entry.first
+                        val cantidad = entry.second
+                        val sizeVisual = if (typeLetras.contains(vitrinaObj.type?.uppercase())) {
+                            size
+                        } else {
+                            size.replace(Regex("[A-Za-z]+"), "").replace("_", ".")
+                        }
+                        val separationCount = separationSizes.count { it == size }
                         val button = Button(context).apply {
-                            text = "Talla: $tallaStr"
-                            setBackgroundResource(R.drawable.size_button_bg)
+                            text = if (separationCount > 0) {
+                                HtmlCompat.fromHtml(
+                                    "$sizeVisual (<font color='#007BFF'>$cantidad</font> | <font color='#FFA500'>$separationCount</font>)",
+                                    HtmlCompat.FROM_HTML_MODE_LEGACY
+                                )
+                            } else {
+                                HtmlCompat.fromHtml(
+                                    "$sizeVisual (<font color='#007BFF'>$cantidad</font>)",
+                                    HtmlCompat.FROM_HTML_MODE_LEGACY
+                                )
+                            }
+                            setBackgroundResource(if (separationCount > 0) {
+                                R.drawable.size_button_red_bg
+                            } else {
+                                R.drawable.size_button_bg
+                            })
                             setTextColor(Color.BLACK)
                             textSize = 14f
                             val params = GridLayout.LayoutParams().apply {
-                                width = 200
+                                width = 205
                                 height = GridLayout.LayoutParams.WRAP_CONTENT
                                 marginEnd = 40
                                 bottomMargin = 50
@@ -202,7 +239,11 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                             layoutParams = params
                             setOnClickListener {
                                 vibrateOneSecond()
-                                onSizeClick(vitrinaObj, tallaStr, "VITRINA")
+                                if (sizesMap[size]?.let { it > 0 } == true) {
+                                    onSizeClick(vitrinaObj, size, "VITRINA")
+                                } else {
+                                    showToast("Talla $size no disponible para VITRINA")
+                                }
                             }
                         }
                         gridVitrinaSizes.addView(button)
@@ -213,7 +254,7 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
             cardVitrina.visibility = View.GONE
         }
 
-        // Update VITRINA B
+        // Update VITRINAB
         if (response.vitrinaB != null) {
             cardVitrinaB.visibility = View.VISIBLE
             response.vitrinaB?.let { vitrinaBObj ->
@@ -221,7 +262,9 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                 tvVitrinaBPrecio.text = "Precio: S/ ${vitrinaBObj.precio ?: "N/A"}"
                 tvVitrinaBTipo.text = "Tipo: ${vitrinaBObj.type ?: "N/A"}"
                 gridVitrinaBSizes.removeAllViews()
-                if (vitrinaBObj.sizes.isNullOrBlank() || vitrinaBObj.sizes == "0") {
+
+                val sizesMap = parseSizes(vitrinaBObj.sizes)
+                if (sizesMap.isEmpty()) {
                     btnVitrinaBSize.text = "Talla no disponible"
                     btnVitrinaBSize.isEnabled = false
                     btnVitrinaBSize.setBackgroundColor(Color.LTGRAY)
@@ -229,19 +272,50 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                 } else {
                     btnVitrinaBSize.visibility = View.GONE
                     gridVitrinaBSizes.visibility = View.VISIBLE
-                    val tallas = vitrinaBObj.sizes
-                        .split(",")
-                        .mapNotNull { it.trim().toDoubleOrNull() }
-                        .sorted()
-                        .map { it.toString() }
-                    tallas.forEach { tallaStr ->
+                    val tallasOrdenadas = if (typeLetras.contains(vitrinaBObj.type?.uppercase())) {
+                        sizesMap
+                            .filter { it.key.matches(Regex("^[a-zA-Z]+$")) }
+                            .toList()
+                            .sortedBy { it.first }
+                    } else {
+                        sizesMap
+                            .toList()
+                            .sortedWith(compareBy(
+                                { SlipperUtils.extraerPrefijo(it.first) },
+                                { SlipperUtils.extraerValorNumerico(it.first) }
+                            ))
+                    }
+                    val separationSizes = response.separation?.map { it.size } ?: emptyList()
+                    tallasOrdenadas.forEach { entry ->
+                        val size = entry.first
+                        val cantidad = entry.second
+                        val sizeVisual = if (typeLetras.contains(vitrinaBObj.type?.uppercase())) {
+                            size
+                        } else {
+                            size.replace(Regex("[A-Za-z]+"), "").replace("_", ".")
+                        }
+                        val separationCount = separationSizes.count { it == size }
                         val button = Button(context).apply {
-                            text = "Talla: $tallaStr"
-                            setBackgroundResource(R.drawable.size_button_bg)
+                            text = if (separationCount > 0) {
+                                HtmlCompat.fromHtml(
+                                    "$sizeVisual (<font color='#007BFF'>$cantidad</font> | <font color='#FFA500'>$separationCount</font>)",
+                                    HtmlCompat.FROM_HTML_MODE_LEGACY
+                                )
+                            } else {
+                                HtmlCompat.fromHtml(
+                                    "$sizeVisual (<font color='#007BFF'>$cantidad</font>)",
+                                    HtmlCompat.FROM_HTML_MODE_LEGACY
+                                )
+                            }
+                            setBackgroundResource(if (separationCount > 0) {
+                                R.drawable.size_button_red_bg
+                            } else {
+                                R.drawable.size_button_bg
+                            })
                             setTextColor(Color.BLACK)
                             textSize = 14f
                             val params = GridLayout.LayoutParams().apply {
-                                width = 200
+                                width = 205
                                 height = GridLayout.LayoutParams.WRAP_CONTENT
                                 marginEnd = 40
                                 bottomMargin = 50
@@ -249,7 +323,11 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                             layoutParams = params
                             setOnClickListener {
                                 vibrateOneSecond()
-                                onSizeClick(vitrinaBObj, tallaStr, "VITRINAB")
+                                if (sizesMap[size]?.let { it > 0 } == true) {
+                                    onSizeClick(vitrinaBObj, size, "VITRINAB")
+                                } else {
+                                    showToast("Talla $size no disponible para VITRINAB")
+                                }
                             }
                         }
                         gridVitrinaBSizes.addView(button)
