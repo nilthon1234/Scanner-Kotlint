@@ -74,6 +74,7 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                 btnAmount.visibility = View.GONE
 
                 val typePermitidos = listOf("GORRA", "CANGURO", "MEDIAS")
+                val typeLetras = listOf("PANTALON", "POLO", "POLERA") // Added types for letter-based sizes
                 val amount = item.amount ?: 0
                 if (typePermitidos.contains(item.type?.uppercase()) && amount > 0) {
                     tvAmount.visibility = View.GONE
@@ -95,19 +96,30 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                     gridSizes.visibility = View.GONE
                 } else {
                     gridSizes.visibility = View.VISIBLE
-                    val tallasOrdenadas = tallasDisponibles
-                        .toList()
-                        .sortedWith(compareBy(
-                            { SlipperUtils.extraerPrefijo(it.first) },
-                            { SlipperUtils.extraerValorNumerico(it.first) }
-                        ))
+                    val tallasOrdenadas = if (typeLetras.contains(item.type?.uppercase())) {
+                        // Filter only letter-based sizes for PANTALON, POLO, POLERA
+                        tallasDisponibles
+                            .filter { it.key.matches(Regex("^[a-zA-Z]+$")) } // Only letter-based sizes (e.g., l, m, s, xl, xs)
+                            .toList()
+                            .sortedBy { it.first } // Sort alphabetically for consistency
+                    } else {
+                        // Existing logic for other types
+                        tallasDisponibles
+                            .toList()
+                            .sortedWith(compareBy(
+                                { SlipperUtils.extraerPrefijo(it.first) },
+                                { SlipperUtils.extraerValorNumerico(it.first) }
+                            ))
+                    }
                     val separationSizes = response.separation?.map { it.size } ?: emptyList()
                     tallasOrdenadas.forEach { entry ->
                         val size = entry.first
                         val cantidad = entry.second
-                        val sizeVisual = size
-                            .replace(Regex("[A-Za-z]+"), "")
-                            .replace("_", ".")
+                        val sizeVisual = if (typeLetras.contains(item.type?.uppercase())) {
+                            size // Show raw letter size (e.g., "l", "m", "s")
+                        } else {
+                            size.replace(Regex("[A-Za-z]+"), "").replace("_", ".")
+                        }
                         val separationCount = separationSizes.count { it == size }
                         val button = Button(context).apply {
                             text = if (separationCount > 0) {
