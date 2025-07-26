@@ -1,36 +1,19 @@
 package com.example.myapplication.ui.detail
 
 import android.content.Context
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
-import android.os.VibrationEffect
 import android.os.Vibrator
-import android.view.View
 import android.widget.Button
 import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.text.HtmlCompat
-import com.bumptech.glide.Glide
 import com.example.myapplication.R
-import com.example.myapplication.data.model.RegisterScannerRequest
-import com.example.myapplication.data.model.SlipperDetail
+import com.example.myapplication.data.database.RetrofitInitializer
 import com.example.myapplication.data.model.SlipperFullResponse
-import com.example.myapplication.data.model.VitrinaDetail
-import com.example.myapplication.data.api.SlipperService
-import com.example.myapplication.data.api.UrlConstantsHttps
 import com.example.myapplication.data.repository.SlipperRepository
 import com.google.android.material.card.MaterialCardView
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
 
 class DetailActivity : AppCompatActivity() {
     private lateinit var btnAmount: Button
@@ -70,13 +53,8 @@ class DetailActivity : AppCompatActivity() {
         initViews()
 
         // Initialize Retrofit and repository
-        val retrofit = Retrofit.Builder()
-            .baseUrl(UrlConstantsHttps.BASE_URL)
-            .addConverterFactory(MoshiConverterFactory.create(
-                Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-            ))
-            .build()
-        repository = SlipperRepository(retrofit.create(SlipperService::class.java))
+        val slipperService = RetrofitInitializer.createSlipperService(this)
+        repository = SlipperRepository(this, slipperService)
         uiManager = SlipperUiManager(this, vibrator)
 
         // Set up button listeners
@@ -113,9 +91,9 @@ class DetailActivity : AppCompatActivity() {
         tvVitrinaBTipo = findViewById(R.id.tvVitrinaBTipo)
         gridVitrinaSizes = findViewById(R.id.gridVitrinaSizes)
         gridVitrinaBSizes = findViewById(R.id.gridVitrinaBSizes)
-        cardAlmacen = findViewById<MaterialCardView>(R.id.cardAlmacen)
-        cardVitrina = findViewById<MaterialCardView>(R.id.cardVitrina)
-        cardVitrinaB = findViewById<MaterialCardView>(R.id.cardVitrinaB)
+        cardAlmacen = findViewById(R.id.cardAlmacen)
+        cardVitrina = findViewById(R.id.cardVitrina)
+        cardVitrinaB = findViewById(R.id.cardVitrinaB)
     }
 
     private fun fetchAndUpdateUI(url: String) {
@@ -133,6 +111,8 @@ class DetailActivity : AppCompatActivity() {
                         fetchAndUpdateUI(url) // Refresh UI after successful registration
                     }
                 }
+            } else {
+                Toast.makeText(this, "Error al cargar los datos", Toast.LENGTH_SHORT).show()
             }
         }
     }

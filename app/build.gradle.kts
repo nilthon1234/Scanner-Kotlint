@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.kapt)
 
 }
 
@@ -80,8 +81,10 @@ dependencies {
 
     //scanner
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
-
-    
     implementation ("com.github.bumptech.glide:glide:4.12.0")
 
+    // Para el  bd SQLITE
+    implementation ("androidx.room:room-runtime:2.6.1")
+    kapt ("androidx.room:room-compiler:2.6.1") // Si usas Kotlin
+    implementation ("androidx.room:room-ktx:2.6.1") // Para soporte de corrutinas en Kotlin
 }

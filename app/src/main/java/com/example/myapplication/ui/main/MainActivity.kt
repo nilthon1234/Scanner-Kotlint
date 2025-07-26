@@ -2,41 +2,62 @@ package com.example.myapplication.ui.main
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
-import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
-import com.google.mlkit.vision.barcode.BarcodeScanning
-
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Bundle
 import android.view.View
-import androidx.annotation.OptIn
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.myapplication.R
+import com.example.myapplication.ui.UrlInput.UrlInputActivity
 import com.example.myapplication.ui.detail.DetailActivity
+import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
-
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.annotation.OptIn
+import androidx.camera.core.ExperimentalGetImage
+import com.example.myapplication.data.database.DatabaseProvider
 
 class MainActivity : AppCompatActivity() {
     private var scanned = false
+    private lateinit var previewView: PreviewView
+    private lateinit var cameraProvider: ProcessCameraProvider
+    private var animator: ObjectAnimator? = null
 
-    private lateinit var previewView: PreviewView;
-    private val scanner by lazy {
-        BarcodeScanning.getClient()
-    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
 
+        // Verificar si hay una URL guardada
+        CoroutineScope(Dispatchers.IO).launch {
+            val db = DatabaseProvider.getDatabase(applicationContext)
+            val urlConfig = db.urlConfigDao().getBaseUrl()
+            withContext(Dispatchers.Main) {
+                if (urlConfig == null) {
+                    // No hay URL, redirigir a UrlInputActivity
+                    startActivity(Intent(this@MainActivity, UrlInputActivity::class.java))
+                    finish()
+                } else {
+                    // Hay URL, continuar con la inicialización
+                    setContentView(R.layout.activity_main)
+                    initializeCamera()
+                }
+            }
+        }
+    }
+
+    private fun initializeCamera() {
         previewView = findViewById(R.id.previewView)
         val laserLine = findViewById<View>(R.id.laserLine)
         val overlayFrame = findViewById<View>(R.id.overlayFrame)
@@ -44,46 +65,30 @@ class MainActivity : AppCompatActivity() {
         // Animación
         overlayFrame.post {
             val height = overlayFrame.height.toFloat()
-            val animator = ObjectAnimator.ofFloat(
+            animator = ObjectAnimator.ofFloat(
                 laserLine, "translationY", 0f, height - laserLine.height
             ).apply {
                 duration = 2000
                 repeatCount = ValueAnimator.INFINITE
                 repeatMode = ValueAnimator.REVERSE
+                start()
             }
-            animator.start()
         }
 
         // Permisos y cámara
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
+            != PackageManager.PERMISSION_GRANTED
+        ) {
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA), 0)
         } else {
-            startCamara()
+            startCamera()
         }
     }
 
-
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 0 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            startCamara()
-        }
-    }
-    override fun onResume() {
-        super.onResume()
-        scanned = false
-    }
-
-    private fun startCamara(){
+    private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
+            cameraProvider = cameraProviderFuture.get()
             val preview = Preview.Builder().build().also {
                 it.setSurfaceProvider(previewView.surfaceProvider)
             }
@@ -100,12 +105,37 @@ class MainActivity : AppCompatActivity() {
                 ))
             }
 
-
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
             cameraProvider.unbindAll()
             cameraProvider.bindToLifecycle(this, cameraSelector, preview, analyzer)
         }, ContextCompat.getMainExecutor(this))
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 0 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            startCamera()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        scanned = false // Restablecer el estado de escaneo
+        if (::cameraProvider.isInitialized) {
+            startCamera() // Reiniciar la cámara
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (::cameraProvider.isInitialized) {
+            cameraProvider.unbindAll() // Desvincular la cámara
+        }
+        animator?.cancel() // Cancelar la animación
     }
 
     class QRCodeAnalyzer(
@@ -134,6 +164,4 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-
 }
