@@ -11,6 +11,6 @@ import retrofit2.http.Url
 interface SlipperService {
     @GET
     fun getSlipperDetails(@Url url: String): Call<SlipperFullResponse>
-    @POST("scanner/save")
+    @POST("api/scanner/save")
     fun saveScanner(@Body request: RegisterScannerRequest): Call<Unit>
 }

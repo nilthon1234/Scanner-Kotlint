@@ -1,26 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@drawable/entrada_portada">
+
+    <ImageView
+        android:id="@+id/logoImageView"
+        android:layout_width="99dp"
+        android:layout_height="117dp"
+        android:layout_marginBottom="124dp"
+        android:padding="8dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/escudo_modificado"
+        app:layout_constraintBottom_toTopOf="@id/urlInput"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.503"
+        app:layout_constraintStart_toStartOf="parent" />
+
 
     <EditText
         android:id="@+id/urlInput"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="Ingrese la URL base (ej. https://example.com)"
-        android:inputType="textUri" />
+        android:background="@drawable/edittext_border"
+        android:hint="Ingrese la URL base (ej. https://example.com  )"
+        android:inputType="textUri"
+        android:padding="14dp"
+        android:textColor="#102350"
+        android:textColorHint="@android:color/darker_gray"
+        android:textSize="16sp"
+        android:layout_marginTop="110dp"
+    app:layout_constraintBottom_toTopOf="@id/saveButton"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintVertical_chainStyle="packed" />
 
     <Button
         android:id="@+id/saveButton"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Guardar URL" />
+        android:layout_marginTop="16dp"
+        android:backgroundTint="#102350"
+        android:text="Guardar URL"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@id/appNameContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/urlInput" />
 
-    <Button
-        android:id="@+id/scanButton"
-        android:layout_width="379dp"
+    <LinearLayout
+        android:id="@+id/appNameContainer"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Escanear código QR" />
-</LinearLayout>
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Inventory"
+            android:textColor="#102350"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Security"
+            android:textColor="@android:color/black"
+            android:textSize="10sp" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

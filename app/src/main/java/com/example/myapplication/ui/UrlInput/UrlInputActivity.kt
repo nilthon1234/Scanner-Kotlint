@@ -2,8 +2,13 @@ package com.example.myapplication.ui.UrlInput
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -23,6 +28,11 @@ class UrlInputActivity : AppCompatActivity() {
     private lateinit var urlInput: EditText
     private lateinit var saveButton: Button
     private lateinit var scanButton: Button
+    private lateinit var logoImageView: ImageView
+    private lateinit var quickRotateAnimation: Animation
+    private var isAnimationScheduled = false
+    private val handler = Handler(Looper.getMainLooper())
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +40,18 @@ class UrlInputActivity : AppCompatActivity() {
 
         urlInput = findViewById(R.id.urlInput)
         saveButton = findViewById(R.id.saveButton)
-        scanButton = findViewById(R.id.scanButton)
+        logoImageView = findViewById(R.id.logoImageView)
+
+        //quickRotateAnimation = AnimationUtils.loadAnimation(this, R.anim.spin_pulse)
+
+        // Iniciar el ciclo de animación
+        scheduleNextRotation()
+
+        // ... resto de tu código ...
+        saveButton.isEnabled = false
+        urlInput.doAfterTextChanged {
+            saveButton.isEnabled = it.toString().isNotBlank() && isValidUrl(it.toString())
+        }
 
         saveButton.isEnabled = false
 
@@ -49,14 +70,7 @@ class UrlInputActivity : AppCompatActivity() {
             }
         }
 
-        // Iniciar el escaneo de QR
-        scanButton.setOnClickListener {
-            // Aquí puedes iniciar una actividad de escaneo similar a MainActivity
-            // o reutilizar el código de escaneo de QR
-            val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra("scan_for_url", true) // Indicar que es para escanear la URL base
-            startActivityForResult(intent, REQUEST_CODE_SCAN)
-        }
+
     }
 
     private fun isValidUrl(url: String): Boolean {
@@ -91,4 +105,46 @@ class UrlInputActivity : AppCompatActivity() {
     companion object {
         const val REQUEST_CODE_SCAN = 100
     }
+    private fun animateViews() {
+        // Cargar la animación
+        val scaleAnimation = AnimationUtils.loadAnimation(this, R.anim.scale_up)
+        val fadeInAnimation = AnimationUtils.loadAnimation(this, R.anim.fade_in)
+
+        // Aplicar animaciones con retraso escalonado para un efecto secuencial
+        urlInput.startAnimation(scaleAnimation)
+
+        scaleAnimation.setStartOffset(100) // 100ms de retraso
+        saveButton.startAnimation(scaleAnimation)
+
+        scaleAnimation.setStartOffset(200) // 200ms de retraso
+        scanButton.startAnimation(scaleAnimation)
+    }
+    private fun scheduleNextRotation() {
+        if (!isAnimationScheduled) {
+            isAnimationScheduled = true
+            handler.postDelayed({
+                logoImageView.startAnimation(quickRotateAnimation)
+                // Cuando termina la animación, programar la siguiente
+                quickRotateAnimation.setAnimationListener(object : Animation.AnimationListener {
+                    override fun onAnimationStart(animation: Animation?) {}
+
+                    override fun onAnimationEnd(animation: Animation?) {
+                        // Programar la próxima rotación después de 2 segundos
+                        handler.postDelayed({
+                            scheduleNextRotation()
+                        }, 2000) // 2 segundos de espera
+                        isAnimationScheduled = false
+                    }
+
+                    override fun onAnimationRepeat(animation: Animation?) {}
+                })
+            }, 2000) // Esperar 2 segundos antes de la primera rotación también
+        }
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacksAndMessages(null) // Limpiar callbacks para evitar fugas de memoria
+    }
+
+
 }
