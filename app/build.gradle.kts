@@ -40,7 +40,7 @@ android {
     }
 
 }
-val camerax_version = "1.3.1" // o usa "1.2.3" si sigues con problemas en dispositivos antiguos
+val camerax_version = "1.2.3" // o usa "1.2.3" si sigues con problemas en dispositivos antiguos
 dependencies {
 
     implementation(libs.androidx.core.ktx)

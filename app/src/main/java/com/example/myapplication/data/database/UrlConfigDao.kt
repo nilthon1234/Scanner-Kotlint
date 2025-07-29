@@ -6,6 +6,10 @@ import androidx.room.Query
 
 @Dao
 interface UrlConfigDao {
+
+    @Query("DELETE FROM url_config")
+    fun deleteAll()
+
     @Query("SELECT * FROM url_config WHERE id = 1")
     suspend fun getBaseUrl(): UrlConfig?
 

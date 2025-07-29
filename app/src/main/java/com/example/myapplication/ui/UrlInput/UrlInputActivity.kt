@@ -42,7 +42,7 @@ class UrlInputActivity : AppCompatActivity() {
         saveButton = findViewById(R.id.saveButton)
         logoImageView = findViewById(R.id.logoImageView)
 
-        //quickRotateAnimation = AnimationUtils.loadAnimation(this, R.anim.spin_pulse)
+        quickRotateAnimation = AnimationUtils.loadAnimation(this, R.anim.spin_pulse)
 
         // Iniciar el ciclo de animación
         scheduleNextRotation()

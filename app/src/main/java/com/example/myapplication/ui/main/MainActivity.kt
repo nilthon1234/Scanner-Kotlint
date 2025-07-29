@@ -35,21 +35,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cameraProvider: ProcessCameraProvider
     private var animator: ObjectAnimator? = null
 
+    private lateinit var laserLine: View
+    private lateinit var overlayFrame: View
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Verificar si hay una URL guardada
         CoroutineScope(Dispatchers.IO).launch {
             val db = DatabaseProvider.getDatabase(applicationContext)
             val urlConfig = db.urlConfigDao().getBaseUrl()
             withContext(Dispatchers.Main) {
                 if (urlConfig == null) {
-                    // No hay URL, redirigir a UrlInputActivity
                     startActivity(Intent(this@MainActivity, UrlInputActivity::class.java))
                     finish()
                 } else {
-                    // Hay URL, continuar con la inicialización
                     setContentView(R.layout.activity_main)
                     initializeCamera()
                 }
@@ -59,23 +59,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun initializeCamera() {
         previewView = findViewById(R.id.previewView)
-        val laserLine = findViewById<View>(R.id.laserLine)
-        val overlayFrame = findViewById<View>(R.id.overlayFrame)
+        laserLine = findViewById(R.id.laserLine)
+        overlayFrame = findViewById(R.id.overlayFrame)
 
-        // Animación
-        overlayFrame.post {
-            val height = overlayFrame.height.toFloat()
-            animator = ObjectAnimator.ofFloat(
-                laserLine, "translationY", 0f, height - laserLine.height
-            ).apply {
-                duration = 2000
-                repeatCount = ValueAnimator.INFINITE
-                repeatMode = ValueAnimator.REVERSE
-                start()
-            }
-        }
+        startLaserAnimation()
 
-        // Permisos y cámara
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -111,6 +99,23 @@ class MainActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
+
+
+    private fun startLaserAnimation() {
+        overlayFrame.post {
+            animator?.cancel() // evitar duplicar animación
+            val height = overlayFrame.height.toFloat()
+            animator = ObjectAnimator.ofFloat(
+                laserLine, "translationY", 0f, height - laserLine.height
+            ).apply {
+                duration = 2000
+                repeatCount = ValueAnimator.INFINITE
+                repeatMode = ValueAnimator.REVERSE
+                start()
+            }
+        }
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -124,19 +129,29 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        scanned = false // Restablecer el estado de escaneo
-        if (::cameraProvider.isInitialized) {
-            startCamera() // Reiniciar la cámara
+        scanned = false
+
+        // Solo reinicia si previewView ya existe
+        if (::cameraProvider.isInitialized && ::previewView.isInitialized) {
+            cameraProvider.unbindAll()
+            startCamera()
+        }
+
+        // Reiniciar animación si están inicializados
+        if (::laserLine.isInitialized && ::overlayFrame.isInitialized) {
+            startLaserAnimation()
         }
     }
+
 
     override fun onPause() {
         super.onPause()
         if (::cameraProvider.isInitialized) {
-            cameraProvider.unbindAll() // Desvincular la cámara
+            cameraProvider.unbindAll()
         }
-        animator?.cancel() // Cancelar la animación
+        animator?.cancel()
     }
+
 
     class QRCodeAnalyzer(
         private val onCodeScanned: (String) -> Unit,
