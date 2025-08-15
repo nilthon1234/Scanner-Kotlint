@@ -77,8 +77,8 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                     ?: throw IllegalStateException("No base URL configured")
 
                 withContext(Dispatchers.Main) {
-                    val typePermitidos = listOf("GORRA", "CANGURO", "MEDIAS")
-                    val typeLetras = listOf("PANTALON", "POLO", "POLERA")
+                    val typePermitidos = listOf("UNICO")
+                    val typeLetras = listOf("ROPA")
 
                     // Update ALMACEN
                     if (response.almacen != null) {
@@ -94,7 +94,7 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                             btnAmount.visibility = View.GONE
 
                             val amount = item.amount ?: 0
-                            if (typePermitidos.contains(item.type?.uppercase()) && amount > 0) {
+                            if (typePermitidos.contains(item.producto?.uppercase()) && amount > 0) {
                                 tvAmount.visibility = View.GONE
                                 btnAmount.apply {
                                     visibility = View.VISIBLE
@@ -114,7 +114,7 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                                 gridSizes.visibility = View.GONE
                             } else {
                                 gridSizes.visibility = View.VISIBLE
-                                val tallasOrdenadas = if (typeLetras.contains(item.type?.uppercase())) {
+                                val tallasOrdenadas = if (typeLetras.contains(item.producto?.uppercase())) {
                                     tallasDisponibles
                                         .filter { it.key.matches(Regex("^[a-zA-Z]+$")) }
                                         .toList()
@@ -131,7 +131,7 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                                 tallasOrdenadas.forEach { entry ->
                                     val size = entry.first
                                     val cantidad = entry.second
-                                    val sizeVisual = if (typeLetras.contains(item.type?.uppercase())) {
+                                    val sizeVisual = if (typeLetras.contains(item.producto?.uppercase())) {
                                         size
                                     } else {
                                         size.replace(Regex("[A-Za-z]+"), "").replace("_", ".")
@@ -206,7 +206,7 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                             } else {
                                 btnVitrinaSize.visibility = View.GONE
                                 gridVitrinaSizes.visibility = View.VISIBLE
-                                val tallasOrdenadas = if (typeLetras.contains(vitrinaObj.type?.uppercase())) {
+                                val tallasOrdenadas = if (typeLetras.contains(vitrinaObj.producto?.uppercase())) {
                                     sizesMap
                                         .filter { it.key.matches(Regex("^[a-zA-Z]+$")) }
                                         .toList()
@@ -223,7 +223,7 @@ class SlipperUiManager(private val context: Context, private val vibrator: Vibra
                                 tallasOrdenadas.forEach { entry ->
                                     val size = entry.first
                                     val cantidad = entry.second
-                                    val sizeVisual = if (typeLetras.contains(vitrinaObj.type?.uppercase())) {
+                                    val sizeVisual = if (typeLetras.contains(vitrinaObj.producto?.uppercase())) {
                                         size
                                     } else {
                                         size.replace(Regex("[A-Za-z]+"), "").replace("_", ".")

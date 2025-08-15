@@ -15,6 +15,7 @@ data class SlipperDetail(
     @Json(name = "urlImg") val urlImg: String?,
     @Json(name = "type") val type: String?,
     @Json(name = "genero") val genero: String?,
+    @Json(name = "producto") val producto: String?,
     @Json(name = "price") val price: Double?,
     @Json(name = "repositoryType") val repositoryType: String?,
     @Json(name = "sizes") val sizes: Map<String, Int>?,

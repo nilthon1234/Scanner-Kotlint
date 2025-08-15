@@ -15,6 +15,7 @@ data class VitrinaDetail (
     @Json(name = "company") val company: String?,
     @Json(name = "size") val sizes: String?,
     @Json(name = "precio") val precio: Double?,
+    @Json(name = "producto") val producto: String?,
     @Json(name = "type") val type: String?,
     @Json(name = "registrationDate") val registrationDate: String?,
     @Json(name = "url") val url: String?,
